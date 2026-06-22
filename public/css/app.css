@@ -1,0 +1,15 @@
+.navbar {
+    background-color: darkblue;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+}
+
+.logo {
+    font-weight: bold;
+}
+
+.logout-form {
+    margin: 0;
+}

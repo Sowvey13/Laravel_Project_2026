@@ -3,43 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ürünü Güncelle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/show.css') }}">
-    <title>Düzenle</title>
 </head>
 <body>
-    <div class="container">
-        <a href="/home" class="back-link">← Geri dön</a>
+
+<div class="edit-wrapper">
+    <div class="edit-container">
         
-        <div class="product-grid">
-            <div class="product-card">
-                <h1>{{ $product->product_name }}</h1>
-                <div class="price-tag">{{ $product->product_price }} TL</div>
-                <p>{{ $product->description }}</p>
-            </div>
+        <div class="header-action">
+            <a href="{{ route('home') }}" class="back-card-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span>Geri Dön</span>
+            </a>
+        </div>
 
-            <div class="product-form">
-                <h3>Düzenleme Paneli</h3>
-                <form action="/products/{{ $product->id }}" method="POST">
-    @csrf @method('PUT')
-    
-    <input type="text" name="product_name" value="{{ old('product_name', $product->product_name) }}" required>
-    @error('product_name') <small style="color:red">{{ $message }}</small> @enderror
+        <div class="edit-card">
+            <h2>Ürünü Güncelle</h2>
+            
+            <form action="{{ route('products.update', $product) }}" method="POST">
+                @csrf
+                @method('PUT')
 
-    <input type="number" name="product_price" value="{{ old('product_price', $product->product_price) }}" required>
-    @error('product_price') <small style="color:red">{{ $message }}</small> @enderror
+                <div class="input-field">
+                    <label for="name">Ürün Adı</label>
+                    <input type="text" id="name" name="name" value="{{ old('name', $product->name) }}" required>
+                </div>
 
-    <textarea name="description" rows="3" required>{{ old('description', $product->description) }}</textarea>
-    @error('description') <small style="color:red">{{ $message }}</small> @enderror
-    
-    <button type="submit" class="btn-update">Güncelle</button>
-</form>
+                <div class="input-field">
+                    <label for="price">Ürün Fiyatı (TL)</label>
+                    <input type="number" id="price" name="price" step="0.01" value="{{ old('price', $product->price) }}" required>
+                </div>
 
-                <form action="/products/{{ $product->id }}" method="POST">
-                    @csrf @method('DELETE')
-                    <button type="submit" class="btn-delete">Sil</button>
+                <div class="input-field">
+                    <label for="description">Ürün Açıklaması</label>
+                    <textarea id="description" name="description" rows="5" required>{{ old('description', $product->description) }}</textarea>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" class="save-btn">Değişiklikleri Kaydet</button>
+                </div>
+            </form>
+
+            <div class="delete-zone">
+                <form action="{{ route('products.destroy', $product) }}" method="POST" onsubmit="return confirm('Bu ürünü silmek istediğinize emin misiniz?');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="delete-btn">Ürünü Sistemden Sil</button>
                 </form>
             </div>
         </div>
+
     </div>
+</div>
+
 </body>
 </html>

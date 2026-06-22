@@ -2,71 +2,56 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Product; 
+use App\Models\Product;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
+use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
-    public function index() 
-    {
-        $products = Product::all();
-        $hasProducts = $products->count() > 0;
-        return view('home', compact('products', 'hasProducts'));
-    }
-
-    public function store(Request $request)
+    public function index()
     {
         
-        $validated = $request->validate([
-            'product_name' => 'required|string|max:255',
-            'product_price' => 'required|numeric',
-            'description' => 'required|string',
-        ]);
-
-       
-        Product::create([
-            'product_name' => $validated['product_name'],
-            'product_price' => $validated['product_price'],
-            'description' => $validated['description'],
-            'user_id' => auth()->id(), 
-        ]);
-
-        return redirect('/home')->with('success', 'Ürün başarıyla listeye eklendi!');
+        $products = Auth::user()->products;
+        return view('home', compact('products'));
     }
-    public function show(Product $product) 
-{
-    return view('show', compact('product'));
-}
 
-public function update(Request $request, Product $product) 
-{
-   
-    $messages = [
-        'product_name.required' => 'Ürün adı boş bırakılamaz.',
-        'product_price.required' => 'Fiyat alanı zorunludur.',
-        'product_price.numeric' => 'Fiyat sadece rakamlardan oluşmalıdır.',
-        'description.required' => 'Açıklama alanı boş bırakılamaz.',
-    ];
+    public function store(StoreProductRequest $request)
+    {
+       
+        Auth::user()->products()->create($request->validated());
+        return redirect()->route('home')->with('success', 'Ürün başarıyla eklendi.');
+    }
 
-    $validated = $request->validate([
-        'product_name' => 'required|string|max:255',
-        'product_price' => 'required|numeric',
-        'description' => 'required|string',
-    ], $messages); 
+    public function show(Product $product)
+    {
+       
+        if ($product->user_id !== Auth::id()) {
+            abort(403, 'Bu ürünü görüntüleme yetkiniz yok.');
+        }
 
-    $product->update($validated);
-    
-    return redirect('/home')->with('success', 'Ürün başarıyla güncellendi!');
-}
+        return view('show', compact('product'));
+    }
 
-public function destroy(Product $product) 
-{
-    $product->delete();
-    return redirect('/home')->with('success', 'Ürün silindi!');
-}
-public function indexAll()
-{
-    $products = \App\Models\Product::all();
-    return view('products', compact('products'));
-}
+    public function update(UpdateProductRequest $request, Product $product)
+    {
+       
+        if ($product->user_id !== Auth::id()) {
+            abort(403, 'Bu ürünü güncelleme yetkiniz yok.');
+        }
+
+        $product->update($request->validated());
+        return redirect()->route('home')->with('success', 'Ürün başarıyla güncellendi.');
+    }
+
+    public function destroy(Product $product)
+    {
+        
+        if ($product->user_id !== Auth::id()) {
+            abort(403, 'Bu ürünü silme yetkiniz yok.');
+        }
+
+        $product->delete();
+        return redirect()->route('home')->with('success', 'Ürün başarıyla silindi.');
+    }
 }

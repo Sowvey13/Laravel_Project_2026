@@ -6,24 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up()
-{
-    Schema::create('products', function (Blueprint $table) {
-        $table->id();
-        $table->string('product_name'); 
-        $table->decimal('product_price', 12, 2);
-        $table->text('description');
-        $table->foreignId('user_id')->constrained();
-        $table->timestamps();
-    });
-}
 
-    /**
-     * Reverse the migrations.
-     */
+    public function up()
+    {
+        Schema::create('products', function (Blueprint $table) {
+            $table->id();
+            
+            // Sadece bu tek satır kalacak, böylece duplicate hatası bitti
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            
+            $table->string('name'); 
+            $table->decimal('price', 12, 2);
+            $table->text('description');
+            $table->timestamps();
+        });
+    }
+
+ 
     public function down(): void
     {
         Schema::dropIfExists('products');

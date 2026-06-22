@@ -6,61 +6,68 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\LoginRequest;
 
 class AuthController extends Controller
 {
-   
+  
     public function showRegister()
     {
         return view('register');
     }
     
-    public function register(Request $request)
+  
+    public function register(RegisterRequest $request)
     {
-        $messages = [
-            'name.required' => 'İsim soyisim alanı zorunludur.',
-            'email.required' => 'Email adresi zorunludur.',
-            'email.email' => 'Lütfen geçerli bir email adresi giriniz.',
-            'email.unique' => 'Bu email adresi zaten kayıtlı.',
-            'password.required' => 'Şifre alanı zorunludur.',
-            'password.min' => 'Şifreniz en az 8 karakter olmalıdır.',
-            'password.confirmed' => 'Şifreler birbiriyle uyuşmuyor.',
-        ];
+       
+        $validated = $request->validated();
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-        ], $messages); 
-
-        $user = User::create([
+        User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
         ]);
 
-        return redirect('/login')->with('success', 'Kayıt başarılı! Şimdi giriş yapabilirsin.');
+        return redirect()->route('login')->with('success', 'Kayıt başarılı! Şimdi giriş yapabilirsin.');
     }
     
+   
     public function showLogin()
     {
         return view('login');
     }
     
-    public function login(Request $request)
+   
+    public function login(LoginRequest $request)
     {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+        $credentials = $request->validated();
 
         if (Auth::attempt($credentials)) {
+           
             $request->session()->regenerate();
-            return redirect()->intended('/home');
+            
+           
+            return redirect()->intended(route('home'));
         }
 
         return back()->withErrors([
             'email' => 'Girdiğiniz bilgiler hatalı.',
         ]);
+    }
+
+    
+    public function logout(Request $request)
+    {
+        
+        Auth::logout();
+
+       
+        $request->session()->invalidate();
+
+        
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')->with('success', 'Başarıyla çıkış yapıldı.');
     }
 }
